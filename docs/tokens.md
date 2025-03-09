@@ -28,7 +28,7 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
 
 - Signs: these are runs of sign-characters such as `+`, `**`, `-->` and so
   on. These primarily play the role of infix operators e.g. `x := y`. In
-  some places they act as supporting 'punctuation'.
+  some places they act as supporting 'punctuation'.use
 
 - Identifiers: the usual rule for identifiers is followed - they start with
   an alphabetical character or an underscore and continue with those, plus digits.
@@ -55,8 +55,19 @@ _WORK IN PROGRESS, March 2025_
 
 ## Identifiers in detail
 
-_WORK IN PROGRESS, March 2025_
+There are two classes of identifiers: basic identifiers and underscore quoted
+identifiers. Basic identifiers start with a letter or underscore and continue
+with letters, digits and underscore. However they may not start and finish with
+an underscore. Basic identifiers that do not start or end with an underscore are
+called core identifiers.
 
+Underscore quoted identifiers use underscores as delimiting quote characters
+and, within that scope, requires escape sequences for any character other than
+a letter or digit. Their purpose is to allow arbitrary characters to be used as
+an identifier.
+
+The escape sequences they support exclude interpolation. Hence `\(` is a 
+plain open parenthesis. 
 
 ## Token rules as a railroad diagram
 

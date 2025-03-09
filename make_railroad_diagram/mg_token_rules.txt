@@ -291,8 +291,9 @@ Diagram(
         ZeroOrMore(
             Choice(
                 0,
-                Terminal('Any codepoint except _ or \\'),
-                NonTerminal('EscapeSequence')
+                Terminal('Any alphanumeric'),
+                NonTerminal('EscapeSequence'),
+                NonTerminal('ExtendedEscapeSequence')
             )
         ),
         Terminal('_')
@@ -363,3 +364,11 @@ Diagram(
     )
 )
 
+// ExtendedEscapeSequence
+Diagram(
+    Comment('ExtendedEscapeSequence'),
+    Sequence(
+        Terminal('\\'),
+        NonTerminal('any non-alphanumeric')
+    )
+)
