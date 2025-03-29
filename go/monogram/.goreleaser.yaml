@@ -1,0 +1,17 @@
+project_name: monogram
+builds:
+  - main: ./go/monogram
+    dir: ./go/monogram
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+release:
+  github:
+    owner: sfkleach
+    name: monogram
