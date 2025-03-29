@@ -1,4 +1,5 @@
 project_name: monogram
+version: 2
 builds:
   - main: ./go/monogram
     dir: ./go/monogram
