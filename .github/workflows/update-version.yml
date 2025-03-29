@@ -55,7 +55,8 @@ jobs:
 
       - name: Install GoReleaser
         run: |
-          curl -sL https://git.io/goreleaser | bash
+          cd go/monogram
+          curl -sL https://git.io/goreleaser | bash)
 
       - name: Run GoReleaser
         run: |
