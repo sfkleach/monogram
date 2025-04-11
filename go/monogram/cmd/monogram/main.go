@@ -50,7 +50,7 @@ type FormatOptions struct {
 }
 
 // setupFlags initializes a flag set with the common flag definitions.
-func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, showHelp *bool, classifyTokens *bool, showVersion *bool) {
+func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, showHelp *bool, classifyTokens *bool, showVersion *bool, testPort *string) {
 	fs.StringVarP(&options.Format, "format", "f", options.Format, "Output format xml|json|yaml|mermaid|dot")
 	fs.StringVarP(&options.Input, "input", "i", options.Input, "Input file (optional, defaults to stdin)")
 	fs.StringVarP(&options.Output, "output", "o", options.Output, "Output file (optional, defaults to stdout)")
@@ -69,6 +69,10 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 	}
 	if showVersion != nil {
 		fs.BoolVar(showVersion, "version", false, "Display the version information")
+	}
+	if testPort != nil {
+		pflag.StringVar(testPort, "test", "", "Start HTTP test server on specified port (optional, e.g., 3000)")
+		pflag.Lookup("test").NoOptDefVal = "8080"
 	}
 }
 
@@ -128,18 +132,13 @@ func main() {
 	var showHelp bool
 	var classifyTokens bool
 	var showVersion bool // New variable for the --version flag
+	var testPort string
 
 	// Set up the main command-line flag set
-	setupFlags(pflag.CommandLine, &options, &optionsFile, &showHelp, &classifyTokens, &showVersion)
+	setupFlags(pflag.CommandLine, &options, &optionsFile, &showHelp, &classifyTokens, &showVersion, &testPort)
 
 	// Parse command-line flags first to check for `--options-file`
 	pflag.Parse()
-
-	// Check for the version flag
-	if showVersion {
-		fmt.Printf("Monogram version: v%s\n", lib.Version)
-		os.Exit(0) // Exit after printing the version
-	}
 
 	// Process options file if specified
 	if optionsFile != "" {
@@ -150,14 +149,25 @@ func main() {
 
 		// Create a temporary FlagSet for file-based options
 		fileFlagSet := pflag.NewFlagSet("file-flags", pflag.ContinueOnError)
-		setupFlags(fileFlagSet, &options, nil, nil, nil, nil) // Reuse the same setup logic
+		setupFlags(fileFlagSet, &options, nil, nil, nil, nil, nil) // Reuse the same setup logic
 		if err := fileFlagSet.Parse(fileArgs); err != nil {
 			log.Fatalf("Error parsing options from file: %v", err)
 		}
+
+		// Re-parse the command-line arguments to ensure they override file-based options
+		pflag.Parse()
 	}
 
-	// Re-parse the command-line arguments to ensure they override file-based options
-	pflag.Parse()
+	if testPort != "" {
+		startTestServer(testPort)
+		os.Exit(0) // Exit after printing the version, cannot be reached at present.
+	}
+
+	// Check for the version flag
+	if showVersion {
+		fmt.Printf("Monogram version: v%s\n", lib.Version)
+		os.Exit(0) // Exit after printing the version
+	}
 
 	// Check for help flag
 	if showHelp {
