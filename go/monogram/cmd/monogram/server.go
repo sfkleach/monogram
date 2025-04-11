@@ -20,21 +20,23 @@ var formTemplate = template.Must(template.New("form").Parse(`
 <head>
   <meta charset="utf-8">
   <title>Monogram Test Interface</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true });</script>
 </head>
 <body>
   <h1>Monogram Test Interface</h1>
   <form action="/translate" method="post">
     <label for="monogramInput">Monogram Notation:</label><br>
-    <textarea name="monogramInput" id="monogramInput" rows="10" cols="80"></textarea><br><br>
+    <textarea name="monogramInput" id="monogramInput" rows="10" cols="80">{{.MonogramInput}}</textarea><br><br>
     
     <label for="format">Output Format:</label>
-    <select name="format" id="format">
-       <option value="xml">XML</option>
-       <option value="json">JSON</option>
-       <option value="yaml">YAML</option>
-       <option value="mermaid">Mermaid</option>
-       <option value="dot">DOT</option>
-    </select>
+<select name="format" id="format">
+   <option value="xml" {{if eq .Format "xml"}}selected{{end}}>XML</option>
+   <option value="json" {{if eq .Format "json"}}selected{{end}}>JSON</option>
+   <option value="yaml" {{if eq .Format "yaml"}}selected{{end}}>YAML</option>
+   <option value="mermaid" {{if eq .Format "mermaid"}}selected{{end}}>Mermaid</option>
+   <option value="dot" {{if eq .Format "dot"}}selected{{end}}>DOT</option>
+</select>
     <br><br>
     
     <label for="indent">Indent (number of spaces):</label>
@@ -49,10 +51,14 @@ var formTemplate = template.Must(template.New("form").Parse(`
     <input type="submit" value="Translate">
   </form>
   <br>
-  <div>
-    <h2>Output:</h2>
-    <pre>{{.Output}}</pre>
-  </div>
+	<div style="border: 1px solid #000; padding: 10px; width: 80ch;">
+	{{if eq .Format "mermaid"}}
+		<div class="mermaid">{{.Output}}</div> <!-- Render diagram only -->
+	{{else}}
+		<h2>Output:</h2>
+		<pre>{{.Output}}</pre> <!-- Keep normal output format -->
+	{{end}}
+	</div>
 </body>
 </html>
 `))
@@ -73,9 +79,16 @@ func startTestServer(port string) {
 	}
 }
 
-// indexHandler renders the form page without translation output.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	formTemplate.Execute(w, struct{ Output string }{Output: ""})
+	formTemplate.Execute(w, struct {
+		Output        string
+		MonogramInput string
+		Format        string
+	}{
+		Output:        "",
+		MonogramInput: "",
+		Format:        "xml", // Default format
+	})
 }
 
 // translateHandler processes the form and renders the translation output.
@@ -122,7 +135,15 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 	translator(inputReader, &outputBuffer, &options)
 
 	// Render the same form with the translation output shown:
-	formTemplate.Execute(w, struct{ Output string }{Output: outputBuffer.String()})
+	formTemplate.Execute(w, struct {
+		Output        string
+		MonogramInput string
+		Format        string
+	}{
+		Output:        outputBuffer.String(),
+		MonogramInput: monogramInput,
+		Format:        format, // Pass format to the template
+	})
 }
 
 func openBrowser(url string) {
